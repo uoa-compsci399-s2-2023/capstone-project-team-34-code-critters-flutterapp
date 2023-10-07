@@ -262,7 +262,7 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void initState() {
     // Hide the status bar in Android
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     getPermissionStatus();
     super.initState();
   }
