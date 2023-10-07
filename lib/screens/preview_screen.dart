@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_demo/screens/captures_screen.dart';
+import 'package:CritterSleuth/screens/captures_screen.dart';
 
 class PreviewScreen extends StatelessWidget {
   final File imageFile;
