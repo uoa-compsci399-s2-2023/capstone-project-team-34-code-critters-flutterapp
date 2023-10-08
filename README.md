@@ -1,5 +1,5 @@
 # CritterSleuth Flutter App
-A Flutter app for the CritterSleuth project.
+A Flutter app for the CritterSleuth project.  
 This app will be used to take pictures of insects and send them to the CritterSleuth API for identification.
 
 The app contains these basic camera features:
@@ -11,7 +11,7 @@ The app contains these basic camera features:
 - Button for flipping the camera — rear cam to front cam and vice versa
 
 ## Attributions
-This application is based upon the work done by Souvik Biswas at [flutter_camera_demo](https://github.com/sbis04/flutter_camera_demo).
+This application is based upon the work done by Souvik Biswas at [flutter_camera_demo](https://github.com/sbis04/flutter_camera_demo).  
 The license of the original application is included below.
 
 ## Flutter Camera Demo License
