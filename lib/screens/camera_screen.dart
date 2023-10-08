@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:critter_sleuth/screens/preview_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -387,7 +388,7 @@ class _CameraScreenState extends State<CameraScreen>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.white,
         body: _isCameraPermissionGranted
             ? _isCameraInitialized
                 ? Column(
@@ -453,8 +454,10 @@ class _CameraScreenState extends State<CameraScreen>
                                                       .toString()
                                                       .split('.')[1]
                                                       .toUpperCase(),
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                                  style: GoogleFonts.varela(
+                                                    textStyle: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
                                                 ),
                                                 value: preset,
                                               )
@@ -488,7 +491,10 @@ class _CameraScreenState extends State<CameraScreen>
                                           _currentExposureOffset
                                                   .toStringAsFixed(1) +
                                               'x',
-                                          style: TextStyle(color: Colors.black),
+                                          style: GoogleFonts.varela(
+                                            textStyle:
+                                                TextStyle(color: Colors.black),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -502,7 +508,7 @@ class _CameraScreenState extends State<CameraScreen>
                                           value: _currentExposureOffset,
                                           min: _minAvailableExposureOffset,
                                           max: _maxAvailableExposureOffset,
-                                          activeColor: Colors.white,
+                                          activeColor: Color(0xFF4ADE80),
                                           inactiveColor: Colors.white30,
                                           onChanged: (value) async {
                                             setState(() {
@@ -522,7 +528,7 @@ class _CameraScreenState extends State<CameraScreen>
                                           value: _currentZoomLevel,
                                           min: _minAvailableZoom,
                                           max: _maxAvailableZoom,
-                                          activeColor: Colors.white,
+                                          activeColor: Color(0xFF4ADE80),
                                           inactiveColor: Colors.white30,
                                           onChanged: (value) async {
                                             setState(() {
@@ -548,8 +554,10 @@ class _CameraScreenState extends State<CameraScreen>
                                               _currentZoomLevel
                                                       .toStringAsFixed(1) +
                                                   'x',
-                                              style: TextStyle(
-                                                  color: Colors.white),
+                                              style: GoogleFonts.varela(
+                                                textStyle: TextStyle(
+                                                    color: Colors.white),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -580,26 +588,13 @@ class _CameraScreenState extends State<CameraScreen>
                                               color: Colors.black38,
                                               size: 60,
                                             ),
-                                            _isRecordingInProgress
-                                                ? controller!
-                                                        .value.isRecordingPaused
-                                                    ? Icon(
-                                                        Icons.play_arrow,
-                                                        color: Colors.white,
-                                                        size: 30,
-                                                      )
-                                                    : Icon(
-                                                        Icons.pause,
-                                                        color: Colors.white,
-                                                        size: 30,
-                                                      )
-                                                : Icon(
-                                                    _isRearCameraSelected
-                                                        ? Icons.camera_front
-                                                        : Icons.camera_rear,
-                                                    color: Colors.white,
-                                                    size: 30,
-                                                  ),
+                                            Icon(
+                                              _isRearCameraSelected
+                                                  ? Icons.camera_front
+                                                  : Icons.camera_rear,
+                                              color: Colors.white,
+                                              size: 30,
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -633,10 +628,19 @@ class _CameraScreenState extends State<CameraScreen>
                                               color: Colors.white,
                                               size: 80,
                                             ),
-                                            Icon(
-                                              Icons.circle,
-                                              color: Colors.white,
-                                              size: 65,
+                                            ShaderMask(
+                                              shaderCallback: (bounds) =>
+                                                  LinearGradient(
+                                                colors: [
+                                                  Color(0xFF4ADE80),
+                                                  Color(0xFF38BDF8)
+                                                ],
+                                              ).createShader(bounds),
+                                              child: Icon(
+                                                Icons.circle,
+                                                color: Colors.white,
+                                                size: 65,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -685,89 +689,162 @@ class _CameraScreenState extends State<CameraScreen>
                         ),
                       ),
                       Expanded(
-                        child: SingleChildScrollView(
-                          physics: BouncingScrollPhysics(),
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                    16.0, 16.0, 16.0, 8.0),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.off;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.off,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_off,
-                                        color:
-                                            _currentFlashMode == FlashMode.off
-                                                ? Colors.amber
-                                                : Colors.white,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                                top: BorderSide(
+                              color: Colors.black,
+                              width: 2.0,
+                            )),
+                          ),
+                          child: SingleChildScrollView(
+                            physics: BouncingScrollPhysics(),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      16.0, 16.0, 16.0, 8.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () async {
+                                          if (_currentFlashMode ==
+                                              FlashMode.off) {
+                                            setState(() {
+                                              _currentFlashMode =
+                                                  FlashMode.always;
+                                            });
+                                            await controller!.setFlashMode(
+                                              FlashMode.always,
+                                            );
+                                          } else {
+                                            setState(() {
+                                              _currentFlashMode = FlashMode.off;
+                                            });
+                                            await controller!.setFlashMode(
+                                              FlashMode.off,
+                                            );
+                                          }
+                                        },
+                                        child: ShaderMask(
+                                          shaderCallback: (Rect bounds) {
+                                            return LinearGradient(
+                                              colors: _currentFlashMode !=
+                                                      FlashMode.off
+                                                  ? [Colors.black, Colors.black]
+                                                  : [
+                                                      Color(0xFF4ADE80),
+                                                      Color(0xFF38BDF8)
+                                                    ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              tileMode: TileMode.clamp,
+                                            ).createShader(bounds);
+                                          },
+                                          child: Icon(
+                                            Icons.flash_off,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.auto;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.auto,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_auto,
-                                        color:
-                                            _currentFlashMode == FlashMode.auto
-                                                ? Colors.amber
-                                                : Colors.white,
+                                      InkWell(
+                                        onTap: () async {
+                                          setState(() {
+                                            _currentFlashMode = FlashMode.auto;
+                                          });
+                                          await controller!.setFlashMode(
+                                            FlashMode.auto,
+                                          );
+                                        },
+                                        child: ShaderMask(
+                                          shaderCallback: (Rect bounds) {
+                                            return LinearGradient(
+                                              colors: _currentFlashMode !=
+                                                      FlashMode.auto
+                                                  ? [Colors.black, Colors.black]
+                                                  : [
+                                                      Color(0xFF4ADE80),
+                                                      Color(0xFF38BDF8)
+                                                    ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              tileMode: TileMode.clamp,
+                                            ).createShader(bounds);
+                                          },
+                                          child: Icon(
+                                            Icons.flash_auto,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.always;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.always,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.flash_on,
-                                        color: _currentFlashMode ==
-                                                FlashMode.always
-                                            ? Colors.amber
-                                            : Colors.white,
+                                      InkWell(
+                                        onTap: () async {
+                                          setState(() {
+                                            _currentFlashMode =
+                                                FlashMode.always;
+                                          });
+                                          await controller!.setFlashMode(
+                                            FlashMode.always,
+                                          );
+                                        },
+                                        child: ShaderMask(
+                                          shaderCallback: (Rect bounds) {
+                                            return LinearGradient(
+                                              colors: _currentFlashMode !=
+                                                      FlashMode.always
+                                                  ? [Colors.black, Colors.black]
+                                                  : [
+                                                      Color(0xFF4ADE80),
+                                                      Color(0xFF38BDF8)
+                                                    ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              tileMode: TileMode.clamp,
+                                            ).createShader(bounds);
+                                          },
+                                          child: Icon(
+                                            Icons.flash_on,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    InkWell(
-                                      onTap: () async {
-                                        setState(() {
-                                          _currentFlashMode = FlashMode.torch;
-                                        });
-                                        await controller!.setFlashMode(
-                                          FlashMode.torch,
-                                        );
-                                      },
-                                      child: Icon(
-                                        Icons.highlight,
-                                        color:
-                                            _currentFlashMode == FlashMode.torch
-                                                ? Colors.amber
-                                                : Colors.white,
+                                      InkWell(
+                                        onTap: () async {
+                                          setState(() {
+                                            _currentFlashMode = FlashMode.torch;
+                                          });
+                                          await controller!.setFlashMode(
+                                            FlashMode.torch,
+                                          );
+                                        },
+                                        child: ShaderMask(
+                                          shaderCallback: (Rect bounds) {
+                                            return LinearGradient(
+                                              colors: _currentFlashMode !=
+                                                      FlashMode.torch
+                                                  ? [Colors.black, Colors.black]
+                                                  : [
+                                                      Color(0xFF4ADE80),
+                                                      Color(0xFF38BDF8)
+                                                    ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              tileMode: TileMode.clamp,
+                                            ).createShader(bounds);
+                                          },
+                                          child: Icon(
+                                            Icons.highlight,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
+                                    ],
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -776,7 +853,9 @@ class _CameraScreenState extends State<CameraScreen>
                 : Center(
                     child: Text(
                       'LOADING',
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.varela(
+                        textStyle: TextStyle(color: Colors.white),
+                      ),
                     ),
                   )
             : Column(
@@ -785,9 +864,8 @@ class _CameraScreenState extends State<CameraScreen>
                   Row(),
                   Text(
                     'Permission denied',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
+                    style: GoogleFonts.varela(
+                      textStyle: TextStyle(color: Colors.white, fontSize: 24),
                     ),
                   ),
                   SizedBox(height: 24),
@@ -799,9 +877,9 @@ class _CameraScreenState extends State<CameraScreen>
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         'Give permission',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
+                        style: GoogleFonts.varela(
+                          textStyle:
+                              TextStyle(color: Colors.white, fontSize: 24),
                         ),
                       ),
                     ),
