@@ -320,11 +320,33 @@ class _CameraScreenState extends State<CameraScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Prediction Results'),
-          content: Text(results),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(32.0)),
+          ),
+          title: ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) => LinearGradient(
+              colors: [Color(0xFF4ADE80), Color(0xFF38BDF8)],
+            ).createShader(bounds),
+            child: Text('Prediction Results',
+                style: GoogleFonts.varela(
+                  textStyle: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.0,
+                  ),
+                )),
+          ),
+          content: Text(results, style: GoogleFonts.varela()),
           actions: <Widget>[
             TextButton(
-              child: Text('Close'),
+              child: Text('Close',
+                  style: GoogleFonts.varela(
+                    textStyle: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
               onPressed: () {
                 Navigator.of(context).pop();
               },
