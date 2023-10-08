@@ -10,8 +10,20 @@ The app contains these basic camera features:
 - Flash mode selector
 - Button for flipping the camera — rear cam to front cam and vice versa
 
+## Getting Started
+You should have Flutter installed on your machine. (Flutter Installation Guide: https://flutter.dev/docs/get-started/install
+To run the app, you can use the following command:
+```
+    flutter run
+```
+To build the app for release, you can use the following command:
+```
+    flutter build apk --release --split-per-abi
+```
+
+
 ## Attributions
-This application is based upon the work done by Souvik Biswas at [flutter_camera_demo](https://github.com/sbis04/flutter_camera_demo).  
+This application is based upon the work done by Souvik Biswas at flutter_camera_demo: https://github.com/sbis04/flutter_camera_demo.  
 The license of the original application is included below.
 
 ## Flutter Camera Demo License
