@@ -1,4 +1,4 @@
-name: CritterSleuth
+name: critter_sleuth
 description: A Machine Learning Insect Identification App
 
 # The following line prevents the package from being accidentally published to
