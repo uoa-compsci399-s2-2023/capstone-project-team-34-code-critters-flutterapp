@@ -1,4 +1,4 @@
-package com.souvikbiswas.flutter_camera_demo
+package com.codecritters.crittersleuth
 
 import io.flutter.embedding.android.FlutterActivity
 
