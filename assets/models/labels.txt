@@ -1,0 +1,13 @@
+austrotephritis
+bactrocera
+ceratitis
+procecidochares
+sphenella
+trupanea_centralis
+trupanea_completa
+trupanea_extensa
+trupanea_fenwicki
+trupanea_longipennis
+trupanea_new_species
+trupanea_vittigera
+urophora
