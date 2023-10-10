@@ -180,7 +180,7 @@ class _CameraScreenState extends State<CameraScreen>
 
       // Internet ML
       // String resultsText = await addImage(file.path);
-      print(await addImage(file.path));
+      // print(await addImage(file.path));
 
       // Local ML
       String resultsText = await _predict(file.path);
@@ -249,7 +249,7 @@ class _CameraScreenState extends State<CameraScreen>
         _isCameraInitialized = controller!.value.isInitialized;
       });
 
-      await cameraController.startImageStream(onLatestImageAvailable);
+      // await cameraController.startImageStream(onLatestImageAvailable);
     }
   }
 

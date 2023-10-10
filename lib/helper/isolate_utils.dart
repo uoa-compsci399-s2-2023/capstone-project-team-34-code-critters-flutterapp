@@ -1,5 +1,5 @@
 import 'dart:io';
-// import 'dart:isolate';
+import 'dart:isolate';
 
 import 'package:camera/camera.dart';
 import 'package:image/image.dart' as imageLib;
@@ -7,7 +7,6 @@ import 'package:critter_sleuth/helper/image_utils.dart';
 import 'package:critter_sleuth/helper/classifier_quant.dart';
 
 // import 'package:tflite_flutter/tflite_flutter.dart';
-import 'package:easy_isolate/easy_isolate.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 
 /// Manages separate Isolate instance for inference
