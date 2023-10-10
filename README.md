@@ -21,9 +21,13 @@ To build the app for release, you can use the following command:
     flutter build apk --release --split-per-abi
 ```
 
+## Issues:
+- The app in this current codebase cannot achieve real-time detection due to its dependency on dart's camera module, as cameraController.startImageStream does not work on all testdevices I have tried.
+
 
 ## Attributions
 This application is based upon the work done by Souvik Biswas at flutter_camera_demo: https://github.com/sbis04/flutter_camera_demo.  
+Most of the tensorflow code is based upon the work done by am15h at flutter_tflite.
 The license of the original application is included below.
 
 ## Flutter Camera Demo License
