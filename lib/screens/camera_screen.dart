@@ -2,14 +2,21 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:critter_sleuth/screens/preview_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
+import 'package:critter_sleuth/helper/classifier.dart';
+import 'package:critter_sleuth/helper/classifier_quant.dart';
+import 'package:critter_sleuth/helper/isolate_utils.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -73,12 +80,14 @@ class _CameraScreenState extends State<CameraScreen>
   CameraController? controller;
 
   File? _imageFile;
+  late Classifier _classifier;
+  bool predicting = false;
+  late IsolateUtils isolateUtils;
 
   // Initial values
   bool _isCameraInitialized = false;
   bool _isCameraPermissionGranted = false;
   bool _isRearCameraSelected = true;
-  bool _isRecordingInProgress = false;
   double _minAvailableExposureOffset = 0.0;
   double _maxAvailableExposureOffset = 0.0;
   double _minAvailableZoom = 1.0;
@@ -168,30 +177,13 @@ class _CameraScreenState extends State<CameraScreen>
 
     try {
       XFile file = await cameraController.takePicture();
-      // addImage(file.path);
-      modelPrediction pred = await addImage(file.path);
-      print("THIS RAN");
-      print(pred.name);
-      pred.pred
-          .sort((a, b) => double.parse(b[0]).compareTo(double.parse(a[0])));
 
-      List<String> formattedResults = [];
-      for (int i = 0; i < pred.pred.length && i < 5; i++) {
-        dynamic probability = pred.pred[i][0];
-        if (probability is String) {
-          probability = double.tryParse(probability);
-          if (probability == null) {
-            throw FormatException(
-                'Unexpected format: probability is not a number');
-          }
-        }
-        String className = pred.pred[i][1];
-        String formattedProbability =
-            '${(probability * 100).toStringAsFixed(2)}%';
-        String formattedResult = '${i + 1}: $className ($formattedProbability)';
-        formattedResults.add(formattedResult);
-      }
-      String resultsText = formattedResults.join('\n');
+      // Internet ML
+      // String resultsText = await addImage(file.path);
+      print(await addImage(file.path));
+
+      // Local ML
+      String resultsText = await _predict(file.path);
 
       results = resultsText;
       return file;
@@ -256,6 +248,8 @@ class _CameraScreenState extends State<CameraScreen>
       setState(() {
         _isCameraInitialized = controller!.value.isInitialized;
       });
+
+      await cameraController.startImageStream(onLatestImageAvailable);
     }
   }
 
@@ -272,21 +266,90 @@ class _CameraScreenState extends State<CameraScreen>
     controller!.setFocusPoint(offset);
   }
 
+  // ML Functions
+
+  Future<TensorImage> _preprocessImage(String filepath) async {
+    // Convert the image to a TensorImage.
+    TensorImage tensorImage = TensorImage.fromFile(File(filepath));
+
+    // Create an ImageProcessor to preprocess the image.
+    var imageProcessor = ImageProcessorBuilder()
+        .add(ResizeOp(299, 299, ResizeMethod.BILINEAR))
+        .add(NormalizeOp(0, 255))
+        .build();
+
+    // Preprocess the image using the ImageProcessor.
+    tensorImage = _convertToGrayscale(tensorImage);
+    tensorImage = imageProcessor.process(tensorImage);
+    return tensorImage;
+  }
+
+  TensorImage _convertToGrayscale(TensorImage tensorImage) {
+    // Convert the image to grayscale.
+    var grayscaleImage = tensorImage;
+    var pixels = grayscaleImage.getTensorBuffer().getIntList();
+    for (int i = 0; i < pixels.length; i += 3) {
+      var pixel =
+          (0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2])
+              .toInt();
+      pixels[i] = pixel;
+      pixels[i + 1] = pixel;
+      pixels[i + 2] = pixel;
+    }
+    grayscaleImage.loadTensorBuffer(grayscaleImage.getTensorBuffer());
+    return grayscaleImage;
+  }
+
+  onLatestImageAvailable(CameraImage cameraImage) async {
+    print("PRECHECK");
+    if (_classifier.interpreter != null) {
+      print("POSTCHECK");
+      // If previous inference has not completed then return
+      print(predicting);
+      if (predicting) {
+        return;
+      }
+
+      setState(() {
+        predicting = true;
+      });
+
+      var uiThreadTimeStart = DateTime.now().millisecondsSinceEpoch;
+
+      // Data to be passed to inference isolate
+      var isolateData =
+          IsolateData(cameraImage, _classifier.interpreter.address);
+
+      // We could have simply used the compute method as well however
+      // it would be as in-efficient as we need to continuously passing data
+      // to another isolate.
+
+      /// perform inference in separate isolate
+      Category inferenceResults = await inference(isolateData);
+
+      print("THIS RAN");
+      print(inferenceResults.label);
+      // var uiThreadInferenceElapsedTime =
+      //     DateTime.now().millisecondsSinceEpoch - uiThreadTimeStart;
+
+      // set predicting to false to allow new frames
+      setState(() {
+        predicting = false;
+      });
+    }
+  }
+
+  /// Runs inference in another isolate
+  Future<Category> inference(IsolateData isolateData) async {
+    ReceivePort responsePort = ReceivePort();
+    isolateUtils.sendPort
+        .send(isolateData..responsePort = responsePort.sendPort);
+    var results = await responsePort.first;
+    return results;
+  }
+
   // Rest API Functions
   final apiDomain = "https://crittersleuthbackend.keshuac.com/";
-  // Future<availableModels> fetchAvailableModels() async {
-  //   final response = await http.get(Uri.parse(api + '/available_models'));
-
-  //   if (response.statusCode == 200) {
-  //     // If the server did return a 200 OK response,
-  //     // then parse the JSON.
-  //     return availableModels.fromJson(jsonDecode(response.body));
-  //   } else {
-  //     // If the server did not return a 200 OK response,
-  //     // then throw an exception.
-  //     throw Exception('Failed to load album');
-  //   }
-  // }
   var results = "";
 
   List<modelPrediction> parsePredictionsList(String responseBody) {
@@ -296,7 +359,7 @@ class _CameraScreenState extends State<CameraScreen>
         .toList();
   }
 
-  Future<modelPrediction> addImage(String filepath) async {
+  Future<String> addImage(String filepath) async {
     String addimageUrl = apiDomain + 'api/v1/upload_json';
     Map<String, String> headers = {
       'Content-Type': 'multipart/form-data',
@@ -307,11 +370,31 @@ class _CameraScreenState extends State<CameraScreen>
     var response = await request.send();
 
     String responseBody = await response.stream.bytesToString();
-    // print("THIS RAN");
-    // print(responseBody);
 
     List<modelPrediction> parsed = parsePredictionsList(responseBody);
-    return parsed[0];
+    var pred = parsed[0];
+
+    pred.pred.sort((a, b) => double.parse(b[0]).compareTo(double.parse(a[0])));
+
+    List<String> formattedResults = [];
+    for (int i = 0; i < pred.pred.length && i < 5; i++) {
+      dynamic probability = pred.pred[i][0];
+      if (probability is String) {
+        probability = double.tryParse(probability);
+        if (probability == null) {
+          throw FormatException(
+              'Unexpected format: probability is not a number');
+        }
+      }
+      String className = pred.pred[i][1];
+      String formattedProbability =
+          '${(probability * 100).toStringAsFixed(2)}%';
+      String formattedResult = '${i + 1}: $className ($formattedProbability)';
+      formattedResults.add(formattedResult);
+    }
+    String resultsText = formattedResults.join('\n');
+
+    return resultsText;
   }
 
   Future<void> _dialogBuilder(BuildContext context) {
@@ -326,14 +409,17 @@ class _CameraScreenState extends State<CameraScreen>
           title: ShaderMask(
             blendMode: BlendMode.srcIn,
             shaderCallback: (bounds) => LinearGradient(
-              colors: [Color(0xFF4ADE80), Color(0xFF38BDF8)],
+              colors: [
+                Color.fromARGB(255, 22, 66, 38),
+                Color.fromARGB(255, 34, 98, 126)
+              ],
             ).createShader(bounds),
             child: Text('Prediction Results',
                 style: GoogleFonts.varela(
                   textStyle: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
+                    fontSize: 24.0,
                   ),
                 )),
           ),
@@ -351,12 +437,6 @@ class _CameraScreenState extends State<CameraScreen>
                 Navigator.of(context).pop();
               },
             ),
-            // TextButton(
-            //   child: Text('OK'),
-            //   onPressed: () {
-            //     Navigator.of(context).pop(true);
-            //   },
-            // ),
           ],
         );
       },
@@ -367,11 +447,31 @@ class _CameraScreenState extends State<CameraScreen>
   void initState() {
     // Hide the status bar in Android
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    _classifier = ClassifierQuant();
+    isolateUtils = IsolateUtils();
+    isolateUtils.start();
     getPermissionStatus();
+    initStateAsync();
     // late Future<http.Response> availableModels = fetchAvailableModels();
     // logResponseJson(availableModels);
 
     super.initState();
+  }
+
+  void initStateAsync() async {}
+
+  Future<String> _predict(String imagePath) async {
+    List<Category> preds = _classifier.predict(imagePath);
+    List<String> formattedResults = [];
+    for (int i = 0; i < preds.length && i < 5; i++) {
+      String className = preds[i].label;
+      String formattedProbability =
+          '${(preds[i].score * 100).toStringAsFixed(2)}%';
+      String formattedResult = '${i + 1}: $className ($formattedProbability)';
+      formattedResults.add(formattedResult);
+    }
+    String resultsText = formattedResults.join('\n');
+    return resultsText;
   }
 
   void logResponseJson(Future<http.Response> responseFuture) async {
