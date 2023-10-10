@@ -26,9 +26,9 @@ To build the app for release, you can use the following command:
 
 
 ## Attributions
-This application is based upon the work done by Souvik Biswas at flutter_camera_demo: https://github.com/sbis04/flutter_camera_demo.  
+This application is based upon the work done by Souvik Biswas at flutter_camera_demo: https://github.com/sbis04/flutter_camera_demo. (This license is included below.)
 Most of the tensorflow code is based upon the work done by am15h at flutter_tflite.
-The license of the original application is included below.
+
 
 ## Flutter Camera Demo License
 Copyright (c) 2021 Souvik Biswas
